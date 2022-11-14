@@ -13,6 +13,8 @@ const btnStyle2 = document.getElementById('style2');
 const btnStyle3 = document.getElementById('style3');
 const btnStyle4 = document.getElementById('style4');
 
+const hVal = document.getElementById('hval');
+
 fond.removeChild(settings);
 
 btnStart.onclick = function() {
@@ -33,6 +35,7 @@ btnAugm.onclick = function() {
     if (meterTaille.value < meterTaille.max) {
         meterTaille.value += 2;
         taille += 2;
+        hVal.textContent = "Valeur actuelle : " + taille;
     }
 }
 
@@ -40,6 +43,7 @@ btnDim.onclick = function() {
     if (meterTaille.value > meterTaille.min) {
         meterTaille.value -= 2;
         taille -= 2;
+        hVal.textContent = "Valeur actuelle : " + taille;
     }
 }
 
@@ -337,30 +341,42 @@ document.onkeydown = function handleKeyDown(e) {
     ctx.fillStyle = colorHead;
     ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
 
-    switch(key){
+    switch(key) {
       case 37: // left
-        if (mazeTab[character[0] - 1][character[1]] != MUR) {
-            character[0] -= 1;
-            score++;
+        if (character[0] != 0) {
+            if (mazeTab[character[0] - 1][character[1]] != MUR) {
+                character[0] -= 1;
+                score++;
+            }
         }
+
         break;
       case 38: // up
-        if (mazeTab[character[0]][character[1] - 1] != MUR) {
-            character[1] -= 1;
-            score++;
-       }
+        if (character[1] != 0) {
+            if (mazeTab[character[0]][character[1] - 1] != MUR) {
+                character[1] -= 1;
+                score++;
+           }
+        }
+
         break;
       case 39: // right
-        if (mazeTab[character[0] + 1][character[1]] != MUR) {
-            character[0] += 1;
-            score++;
+        if (character[0] != taille - 1) {
+            if (mazeTab[character[0] + 1][character[1]] != MUR) {
+                character[0] += 1;
+                score++;
+            }
         }
+        
         break;
       case 40: // down
-        if (mazeTab[character[0]][character[1] + 1] != MUR) {
-            character[1] += 1;
-            score++;
+        if (character[1] != taille - 1) {
+            if (mazeTab[character[0]][character[1] + 1] != MUR) {
+                character[1] += 1;
+                score++;
+            }
         }
+
         break;
       case 32: //space
         location.reload();
@@ -393,6 +409,5 @@ document.onkeydown = function handleKeyDown(e) {
 
         ctx.strokeText("Score : " + score + " points", l/2, l/2);
         ctx.fillText("Score : " + score + " points", l/2, l/2);
-
     }
 }

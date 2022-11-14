@@ -85,6 +85,6 @@ button {
     color: var(--textCol);
 }
 
-h2 {
+h2,h3 {
     color: var(--textCol);
 }
