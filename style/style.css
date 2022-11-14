@@ -1,0 +1,90 @@
+:root {
+    --mainCol: #F3DE8A;
+    --secCol: #bea74a;
+    --thrdCol: #947d21;
+    --textCol: black;
+}
+
+body {
+    background-color: var(--mainCol);
+    display: flex;
+    flex-direction: row;
+    height: 96vh;
+    align-items: center;
+    justify-content: center;
+}
+
+button.accueil {
+    background-color: var(--secCol);
+    padding: 50px;
+    margin: 50px;
+    border-radius: 2% 30% 2% 30%;
+    border: 5px solid black;
+    font-size: x-large;
+    font-family: serif;
+}
+
+#settings {
+    padding: 50px 90px 50px 90px;
+}
+
+button.accueil:hover {
+    background-color: var(--thrdCol);
+}
+
+/* style de la partie regleges */
+
+p {
+    font-family: 'Times New Roman', Times, serif;
+    color: var(--textCol);
+}
+
+#wrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+#wrapperLeft, #wrapperRight {
+    display: flex;
+    flex-direction: column;
+    max-width: 55vw;
+    margin: 0 5vw 0 5vw;
+}
+
+#esc {
+    position: absolute;
+    top: 30px; left: 30px;
+}
+
+#wrapperRight div {
+    margin: 30px ;
+}
+
+#wrapper button, #esc {
+    background-color: var(--secCol);
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5%;
+    border: 2px solid black;
+    font-family: serif;
+}
+
+#esc:hover {
+    background-color: var(--thrdCol);
+}
+
+#wrapper button:hover {
+    background-color: var(--thrdCol);
+}
+
+#wrapperLeft {
+    margin-top: 50px;
+}
+
+button {
+    color: var(--textCol);
+}
+
+h2 {
+    color: var(--textCol);
+}

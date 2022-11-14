@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="../script/script.js" defer></script>
+    <link rel="stylesheet" href="../style/style.css">
+    <title>Mazzy</title>
+</head>
+<body>
+    <button class="accueil" id="game">Nouvelle partie</button>
+    <button class="accueil" id="settings"> Réglages</button>
+
+    <div id="wrapper">
+
+        <div id="wrapperLeft">
+            <div>
+                <h2>Règles du jeu et utilisation</h2>
+                <article>
+                    <p>Le but du jeu est de résoudre un labyrinthe généré aléatoirement par l'application. </p>
+                    <p>Pour cela vous pouvez utiliser les flèches "haut", "bas", "gauche" et "droite".</p>
+                    <p>Vous avez ensuite la possibilité dans le menu de droite de modifier
+                        certains paramètres comme la taille du labyrinthe et donc sa difficulté
+                        ou encore les couleurs du jeu.</p>
+                </article>
+            </div>
+            <div>
+                <h2>Algorythme du labyrinthe</h2>
+                <article>
+                    <p>J'ai créé cet algorithme à partir d'un concept trouvé sur internet,
+                         le but de celui-ci est de créer dans un premier temps un tableau
+                          quadrillé de murs avec seulement des cases de type "sol" isolées unes à unes.</p>
+                    <p>L'étape suivante va être de donner à chacune de ces cases une valeur différente 
+                        et ensuite les regrouper au fur et a mesuré par familles.</p>
+                    <p>Pour regrouper les cases on va se placer une d'entre elles au hasard et aller voir un adjacente,
+                         si les deux sont de familles différentes on va les rassembler et garder une des deux familles
+                          seulement.</p>
+                    <p>On continue ainsi jusqu'à ce que toutes les cases du tableau soient ou bien des 
+                        murs ou alors une seule et même famille.</p>
+                    <p>On a ainsi un labyrinthe complexe ou toutes les cases sont reliées entres
+                         elles et avec donc un seul chemin entre chaque point.</p>
+                </article>
+            </div>
+        </div>
+
+        <div id="wrapperRight">
+            <div>
+                <h2>Modifier la taille du labyrinthe</h2>
+                <button id="dim">Diminuer</button>
+                <meter value="25" min="9" max="49"></meter>
+                <button id="augm">Augmenter</button>
+            </div>
+            <div>
+                <h2>Changer les couleurs du jeu</h2>
+                <div>
+                    <button id="style1">Style de base</button>
+                    <button id="style2">Style Black & White</button>
+                    <button id="style3">Style Bleu marin</button>
+                    <button id="style4">Style neon</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="esc">Retour</button>
+
+    </div>
+</body>
+</html>
