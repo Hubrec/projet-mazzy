@@ -13,6 +13,8 @@ const btnStyle2 = document.getElementById('style2');
 const btnStyle3 = document.getElementById('style3');
 const btnStyle4 = document.getElementById('style4');
 
+const hVal = document.getElementById('hval');
+
 fond.removeChild(settings);
 
 btnStart.onclick = function() {
@@ -29,10 +31,12 @@ btnSet.onclick = function() {
     fond.appendChild(btnEsc);
 }
 
+//click normal
 btnAugm.onclick = function() {
     if (meterTaille.value < meterTaille.max) {
         meterTaille.value += 2;
         taille += 2;
+        hVal.textContent = "Valeur actuelle : " + taille;
     }
 }
 
@@ -40,7 +44,13 @@ btnDim.onclick = function() {
     if (meterTaille.value > meterTaille.min) {
         meterTaille.value -= 2;
         taille -= 2;
+        hVal.textContent = "Valeur actuelle : " + taille;
     }
+}
+
+//plus rapide
+window.scrollY = function(e) {
+    consloe.log(e);
 }
 
 btnEsc.onclick = function() {
@@ -51,9 +61,8 @@ btnEsc.onclick = function() {
     if (fond.contains(settings)) {
         fond.removeChild(settings);
     } else {
-        location.reload();
+        fond.removeChild(canvas);
     }
-    
 }
 
 const MUR = 0;
@@ -67,11 +76,14 @@ var colorHead = "orange";
 var colorWalls = "black";
 var colorWay = "yellow";
 
-var end = [taille - 1, taille - 2];
-var character = [0,1];
+var far = [taille - 1, taille - 2];
+var character = [0, 1];
 var mazeTab;
+var bigVal = 0;
+var gameStarted = false;
+var wayBack = false;
 
-let root = document.documentElement;
+var root = document.documentElement;
 
 btnStyle1.onclick = function() {
     colorEnd = "green";
@@ -86,10 +98,10 @@ btnStyle1.onclick = function() {
 }
 
 btnStyle2.onclick = function() {
-    colorEnd = "A9A9A9";
+    colorEnd = "#FA0000";
     colorHead = "#5D5D5D";
     colorWalls = "black";
-    colorWay = "#7A7A7A";
+    colorWay = "#FA0000";
 
     root.style.setProperty('--mainCol', "DFDFDF");
     root.style.setProperty('--secCol', "gray");
@@ -122,7 +134,13 @@ btnStyle4.onclick = function() {
 }
 
 function startGame() {
+    gameStarted = true;
+    character = [0 ,1];
+    drdBool = false;
+    score = 0;
+
     generateMaze();
+    calculWay();
     drawMaze();
 }
 
@@ -133,8 +151,6 @@ function generateMaze() {
     for (let i = 0; i < taille; i++) {
         mazeTab[i] = new Array(taille);
     }
-
-    end = [taille - 1, taille - 2];
 
     //premierement on rempli le tableau de sol
     for (let i = 0; i < taille; i++) {
@@ -185,7 +201,6 @@ function generateMaze() {
 
     //ouverture dans les coins
     mazeTab[0][1] = mazeTab[1][1];
-    mazeTab[taille - 1][taille - 2] = mazeTab[taille - 2][taille - 2];
  
     //on va maintenant rassambler toutes les cases petit a petit
     while (!merged()) {
@@ -222,6 +237,19 @@ function generateMaze() {
         } 
         else if (y == taille - 2) {
             merge(x, y, getRand(1, 4, 2));
+        }
+    }
+
+    //on remet les valeurs de sol sur les cases qui ne sont pas des murs
+    resetSol();
+}
+
+function resetSol() {
+    for (let o = 0; o < taille; o++) {
+        for (let k = 0; k < taille; k++) {
+            if (mazeTab[o][k] != MUR) {
+                mazeTab[o][k] = SOL;
+            }
         }
     }
 }
@@ -287,21 +315,20 @@ const ctx = canvas.getContext('2d');
 var tailleCase = 0;
 var l;
 
+var drdBool = false;
+
 //fonction d'affichage
 function drawMaze() {
 
-    ctx.scale(0.5,0.25);
-    l = 0.9 * fond.clientHeight;
-    let r = l % taille;
+    l = 0.95 * fond.clientHeight;
+    var r = l % taille;
     l -= r;
     tailleCase = (l / taille);
 
-    canvas.style.backgroundColor = fond.getAttribute.backgroundColor;
-    canvas.style.height = l + "px";
-    canvas.style.width = l + "px";
-    
-    ctx.fillStyle = colorWalls;
+    canvas.height = l; 
+    canvas.width = l;
 
+    ctx.fillStyle = colorWalls;
     for (let i = 0; i < taille; i++) {
         for (let j = 0; j < taille; j++) {
             if (mazeTab[i][j] == MUR) {
@@ -314,7 +341,7 @@ function drawMaze() {
     ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
 
     ctx.fillStyle = colorEnd;
-    ctx.fillRect( end[0] * tailleCase, end[1] * tailleCase, tailleCase, tailleCase);
+    ctx.fillRect( far[0] * tailleCase, far[1] * tailleCase, tailleCase, tailleCase);
 
     fond.appendChild(canvas);
 }
@@ -331,56 +358,108 @@ function getRand(min, max, e) {
     return y;
 }
 
+//gestionnaire des touches enfoncées
 document.onkeydown = function handleKeyDown(e) {
-    const key = e.keyCode;
 
-    ctx.fillStyle = colorHead;
-    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+    var key = e.keyCode;
 
-    switch(key){
-      case 37: // left
-        if (mazeTab[character[0] - 1][character[1]] != MUR) {
-            character[0] -= 1;
-            score++;
-        }
-        break;
-      case 38: // up
-        if (mazeTab[character[0]][character[1] - 1] != MUR) {
-            character[1] -= 1;
-            score++;
-       }
-        break;
-      case 39: // right
-        if (mazeTab[character[0] + 1][character[1]] != MUR) {
-            character[0] += 1;
-            score++;
-        }
-        break;
-      case 40: // down
-        if (mazeTab[character[0]][character[1] + 1] != MUR) {
-            character[1] += 1;
-            score++;
-        }
-        break;
-      case 32: //space
-        location.reload();
-      case 68: //letter D
-        for (let i = 0; i < taille; i++) {
-            for (let j = 0; j < taille; j++) {
-                if (mazeTab[i][j] == MUR) {
-                    mazeTab[i][j] = SOL;
+    if (gameStarted) {
+        
+        ctx.fillStyle = colorHead;
+        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+        switch(key) {
+            case 37: // left
+                if (character[0] != 0) {
+                    if (mazeTab[character[0] - 1][character[1]] != MUR) {
+                        character[0] -= 1;
+                        score++;
+                    }
                 }
+                break;
+            case 38: // up
+                if (character[1] != 0) {
+                    if (mazeTab[character[0]][character[1] - 1] != MUR) {
+                        character[1] -= 1;
+                        score++;
+                    }
+                }
+                break;
+            case 39: // right
+                if (character[0] != taille - 1) {
+                    if (mazeTab[character[0] + 1][character[1]] != MUR) {
+                        character[0] += 1;
+                        score++;
+                    }
+                }            
+                break;
+            case 40: // down
+                if (character[1] != taille - 1) {
+                    if (mazeTab[character[0]][character[1] + 1] != MUR) {
+                        character[1] += 1;
+                        score++;
+                    }
+                }
+                break;
+            case 68: //letter D
+                for (let i = 0; i < taille; i++) {
+                    for (let j = 0; j < taille; j++) {
+                        if (mazeTab[i][j] == MUR) {
+                            mazeTab[i][j] = SOL;
+                        }
+                    }
+                }
+                break;
+            case 67: // letter c
+                if (wayBack) {
+                    calculWay();
+                }
+            
+                if (drdBool) {
+                    blurDistances();
+                } else {
+                    drawDistances();
+                }
+                break;
+            case 70: //letter f
+                if (!wayBack) {
+                    calculWayBack(far[0], far[1]);
+                }
+
+                avancer();
+                
+                break;
+            default:
+                //nothing
+        }
+
+        ctx.fillStyle = colorWay;
+        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+    } 
+
+    if (key == 32) { //space
+        if (fond.contains(btnStart)) {
+            fond.removeChild(btnStart);
+            fond.removeChild(btnSet);
+            fond.appendChild(btnEsc);
+            startGame();
+        } else {
+            fond.appendChild(btnStart);
+            fond.appendChild(btnSet);
+            fond.removeChild(btnEsc);
+            gameStarted = false;
+            
+            if (fond.contains(canvas)) {
+                fond.removeChild(canvas);
+            } else {
+                fond.removeChild(settings);
             }
         }
-      default:
-        //do nothing
     }
 
-    ctx.fillStyle = colorWay;
-    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
     
     //fin de partie
-    if (character[0] == end[0] && character[1] == end[1]) {
+    if (character[0] == far[0] && character[1] == far[1]) {
 
         ctx.font = "bold 50px sans-serif";
         ctx.fillStyle = "black";
@@ -388,11 +467,149 @@ document.onkeydown = function handleKeyDown(e) {
         ctx.textBaseline = "middle";
         ctx.strokeStyle = colorWay;
         ctx.lineWidth = "5";
-        ctx.strokeText("Bravo Vous avez gagné", l/2, l/2 - 100);
+        ctx.strokeText("Bravo vous avez gagné", l/2, l/2 - 100);
         ctx.fillText("Bravo vous avez gagné", l/2, l/2 - 100);
 
-        ctx.strokeText("Score : " + score + " points", l/2, l/2);
-        ctx.fillText("Score : " + score + " points", l/2, l/2);
+        ctx.strokeText("Score : " + calcScore() + " points", l/2, l/2);
+        ctx.fillText("Score : " + calcScore() + " points", l/2, l/2);
 
+        gameStarted = false;
     }
+}
+
+function calculWay() {
+    var x = 1;
+    var y = 1;
+    var val = 2;
+    bigVal = 0;
+
+    mazeTab[0][1] = 2;
+    
+    voisinRecurs(x,y, val + 1);
+
+    for (let i = 0; i < taille; i++) {
+        for (let j = 0; j < taille; j++) {
+            if (mazeTab[i][j] > bigVal) {
+                bigVal = mazeTab[i][j];
+                far[0] = i;
+                far[1] = j;
+            }
+        }
+    }
+
+    wayBack = false;
+}
+
+function calculWayBack(x, y) {
+    var val = 2;
+    resetSol();
+
+    mazeTab[far[0]][far[1]] = val;
+    
+    voisinRecurs(x,y, val + 1);
+
+    bigVal = mazeTab[0][1];
+    wayBack = true;
+}
+
+function voisinRecurs(x, y, val) {
+
+    mazeTab[x][y] = val;
+
+    if (!(x == 0 && y == 1)) {
+
+        if (mazeTab[x + 1][y] == SOL) {
+            voisinRecurs(x + 1, y, val + 1);
+        }
+        
+        if (mazeTab[x][y + 1] == SOL) {
+            voisinRecurs(x, y + 1, val + 1);
+        }
+        
+        if (mazeTab[x][y - 1] == SOL) {
+            voisinRecurs(x,y - 1, val + 1);
+        }
+    
+        if (mazeTab[x - 1][y] == SOL) {
+            voisinRecurs(x - 1, y, val + 1);
+        }
+    } 
+}
+
+function drawDistances() {
+    let rgbStart = 40;
+    let facteur = 1;
+
+    let rgbCol = color(rgbStart,rgbStart,rgbStart);
+   
+    facteur = (255 - rgbStart - 15) / bigVal;
+
+    for (let i = 0; i < taille; i++) {
+        for (let j = 0; j < taille; j++) {
+            if (mazeTab[i][j] != MUR && !(i == far[0] && j == far[1])) {
+                rgbCol = color(Math.round(mazeTab[i][j] * facteur + rgbStart),Math.round( rgbStart + mazeTab[i][j] * facteur), Math.round(rgbStart + mazeTab[i][j] * facteur));
+                ctx.fillStyle = rgbCol;
+                ctx.fillRect(i * tailleCase, j * tailleCase, tailleCase, tailleCase);
+            }
+        }
+    }
+    drdBool = true;
+}
+
+function avancer() {
+
+    ctx.fillStyle = colorHead;
+    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+    score++;
+
+    if (mazeTab[character[0]][character[1]] > mazeTab[character[0] + 1][character[1]] &&
+         mazeTab[character[0] + 1][character[1]] != MUR) {
+        character[0] += 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] + 1] &&
+         mazeTab[character[0]][character[1] + 1] != MUR) {
+        character[1] += 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0] - 1][character[1]] &&
+         mazeTab[character[0] - 1][character[1]] != MUR) {
+        character[0] -= 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] - 1] &&
+         mazeTab[character[0]][character[1] - 1] != MUR) {
+        character[1] -= 1;
+    }
+
+    ctx.fillStyle = colorWay;
+    ctx.fillRect(character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+}
+
+function blurDistances() {
+    
+    ctx.clearRect(0, 0, l, l);
+    drawMaze();
+    drdBool = false;
+}
+
+function color(r,g,b) {
+    if (r > 255 || g > 255 || b > 255) {
+        return "#FF0000";
+    } else {
+        let string = "#";
+
+        var exa = r.toString(16);
+        string = string + exa;
+        exa = g.toString(16);
+        string = string + exa;
+        exa = b.toString(16);
+        string = string + exa;
+
+        return string;
+    }
+    
+}
+
+function calcScore() {
+    return Math.round(taille*1.5) + bigVal - score - 3; 
 }

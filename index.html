@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="./script/script.js" defer></script>
     <link rel="stylesheet" href="./style/style.css">
+    <link rel="icon" type="image/x-icon" href="./ressources/logo.png">
     <title>Mazzy</title>
 </head>
 <body>
@@ -15,7 +16,7 @@
     <div id="wrapper">
 
         <div id="wrapperLeft">
-            <div>
+            <div id="left1">
                 <h2>Règles du jeu et utilisation</h2>
                 <article>
                     <p>Le but du jeu est de résoudre un labyrinthe généré aléatoirement par l'application. </p>
@@ -25,7 +26,7 @@
                         ou encore les couleurs du jeu.</p>
                 </article>
             </div>
-            <div>
+            <div id="left2">
                 <h2>Algorythme du labyrinthe</h2>
                 <article>
                     <p>J'ai créé cet algorithme à partir d'un concept trouvé sur internet,
@@ -42,16 +43,25 @@
                          elles et avec donc un seul chemin entre chaque point.</p>
                 </article>
             </div>
+            <div id="left3">
+                <h2>Touches spéciales</h2>
+                <article>
+                    <p>touche C => permet d'afficher un gradient des distances a l'arrivée</p>
+                    <p>touche D => détruits tous les murs et permet de passer au travers</p>
+                    <p>touche f => fait avancer de 1 dans la direction de l'arrivée (possible de maintenir appuyé)</p>
+                </article>
+            </div>
         </div>
 
         <div id="wrapperRight">
-            <div>
+            <div id="right1">
                 <h2>Modifier la taille du labyrinthe</h2>
+                <h3 id="hval">Valeur actuelle : 25</h3>
                 <button id="dim">Diminuer</button>
-                <meter value="25" min="9" max="49"></meter>
+                <meter value="25" min="7" max="201"></meter>
                 <button id="augm">Augmenter</button>
             </div>
-            <div>
+            <div id="right2">
                 <h2>Changer les couleurs du jeu</h2>
                 <div>
                     <button id="style1">Style de base</button>
