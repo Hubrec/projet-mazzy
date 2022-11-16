@@ -13,6 +13,11 @@ const btnStyle2 = document.getElementById('style2');
 const btnStyle3 = document.getElementById('style3');
 const btnStyle4 = document.getElementById('style4');
 
+const dataNbParties = document.getElementById('parties');
+const dataScore = document.getElementById('score');
+const dataMoyen = document.getElementById('moyenne');
+const dataPercent = document.getElementById('message');
+
 const hVal = document.getElementById('hval');
 
 fond.removeChild(settings);
@@ -82,6 +87,11 @@ var mazeTab;
 var bigVal = 0;
 var gameStarted = false;
 var wayBack = false;
+var globalScore = 0;
+var nbParties = 0;
+var speedUp = 0;
+
+var percentPlayer = 0;
 
 var root = document.documentElement;
 
@@ -138,6 +148,17 @@ function startGame() {
     character = [0 ,1];
     drdBool = false;
     score = 0;
+    nbParties += 1;
+    speedUp = 0;
+    dataNbParties.textContent = "Nombre de parties : " + nbParties;
+    dataMoyen.textContent = "Score moyen par partie : " + Math.round(globalScore / nbParties);
+
+    percentPlayer = 101 - Math.round((globalScore / nbParties) / 3);
+    dataPercent.textContent = "Vous faites parti des " + percentPlayer + "% meilleurs joueurs";
+
+    if (percentPlayer == 0) {
+        dataPercent.textContent = "Vous êtes le meilleur joueur au monde !";
+    }
 
     generateMaze();
     calculWay();
@@ -425,9 +446,26 @@ document.onkeydown = function handleKeyDown(e) {
                 if (!wayBack) {
                     calculWayBack(far[0], far[1]);
                 }
-
-                avancer();
                 
+                if (speedUp == 1) {
+                    while (gameStarted) {
+                        avancer();
+
+                        if (character[0] == far[0] && character[1] == far[1]) {
+                            endGame();
+                        }
+                    }
+                } else {
+                    avancer();
+                }
+                
+                break;
+            case 65: //letter a
+                if (speedUp == 0) {
+                    speedUp ++;
+                } else {
+                    speedUp --;
+                }
                 break;
             default:
                 //nothing
@@ -460,20 +498,7 @@ document.onkeydown = function handleKeyDown(e) {
     
     //fin de partie
     if (character[0] == far[0] && character[1] == far[1]) {
-
-        ctx.font = "bold 50px sans-serif";
-        ctx.fillStyle = "black";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.strokeStyle = colorWay;
-        ctx.lineWidth = "5";
-        ctx.strokeText("Bravo vous avez gagné", l/2, l/2 - 100);
-        ctx.fillText("Bravo vous avez gagné", l/2, l/2 - 100);
-
-        ctx.strokeText("Score : " + calcScore() + " points", l/2, l/2);
-        ctx.fillText("Score : " + calcScore() + " points", l/2, l/2);
-
-        gameStarted = false;
+        endGame();
     }
 }
 
@@ -611,5 +636,34 @@ function color(r,g,b) {
 }
 
 function calcScore() {
-    return Math.round(taille*1.5) + bigVal - score - 3; 
+    return Math.round(taille*1.5) + bigVal - score - 3;
+}
+
+function endGame() {
+    ctx.font = "bold 50px sans-serif";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.strokeStyle = colorWay;
+    ctx.lineWidth = "5";
+    ctx.strokeText("Bravo vous avez gagné", l/2, l/2 - 100);
+    ctx.fillText("Bravo vous avez gagné", l/2, l/2 - 100);
+
+    ctx.strokeText("Score : " + calcScore() + " points", l/2, l/2);
+    ctx.fillText("Score : " + calcScore() + " points", l/2, l/2);
+
+    if (gameStarted) {
+        globalScore += calcScore();
+        dataScore.textContent = "Score global : " + globalScore;
+        dataMoyen.textContent = "Score moyen par partie : " + Math.round(globalScore / nbParties);
+
+        percentPlayer = 101 - Math.round((globalScore / nbParties) / 3);
+        dataPercent.textContent = "Vous faites parti des " + percentPlayer + "% meilleurs joueurs";
+
+        if (percentPlayer == 0) {
+            dataPercent.textContent = "Vous êtes le meilleur joueur au monde !";
+        }
+    }
+
+    gameStarted = false;
 }
