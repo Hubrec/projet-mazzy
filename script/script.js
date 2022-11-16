@@ -53,11 +53,6 @@ btnDim.onclick = function() {
     }
 }
 
-//plus rapide
-window.scrollY = function(e) {
-    consloe.log(e);
-}
-
 btnEsc.onclick = function() {
     fond.appendChild(btnStart);
     fond.appendChild(btnSet);
@@ -473,7 +468,23 @@ document.onkeydown = function handleKeyDown(e) {
 
         ctx.fillStyle = colorWay;
         ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-    } 
+    } else {
+        if (fond.contains(settings)) {
+            if (key == 107) { // +
+                if (meterTaille.value < meterTaille.max) {
+                    meterTaille.value += 2;
+                    taille += 2;
+                    hVal.textContent = "Valeur actuelle : " + taille;
+                }
+            } else if (key == 109) { // -
+                if (meterTaille.value > meterTaille.min) {
+                    meterTaille.value -= 2;
+                    taille -= 2;
+                    hVal.textContent = "Valeur actuelle : " + taille;
+                }
+            }
+        }
+    }
 
     if (key == 32) { //space
         if (fond.contains(btnStart)) {
