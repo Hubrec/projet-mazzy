@@ -51,6 +51,145 @@ var tailleCase = 0; // taille en picel d'une case calculée en fonction de la ta
 var l; // variable de la taille du labyrinthe qui vaux la la taille de la frame arrondi pour que le nombre de cases tombe à l'entier pile
 var drdBool = false; // boolean qui détermine si l'aide a la distance est activée, activable avec la touche C
 
+//gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
+document.onkeydown = function handleKeyDown(e) {
+
+    var key = e.keyCode;
+
+    if (gameStarted) {
+        
+        ctx.fillStyle = colorHead;
+        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+        switch(key) {
+            case 37: // left
+                if (character[0] != 0) {
+                    if (mazeTab[character[0] - 1][character[1]] != MUR) {
+                        character[0] -= 1;
+                        score++;
+                    }
+                }
+                break;
+            case 38: // up
+                if (character[1] != 0) {
+                    if (mazeTab[character[0]][character[1] - 1] != MUR) {
+                        character[1] -= 1;
+                        score++;
+                    }
+                }
+                break;
+            case 39: // right
+                if (character[0] != taille - 1) {
+                    if (mazeTab[character[0] + 1][character[1]] != MUR) {
+                        character[0] += 1;
+                        score++;
+                    }
+                }            
+                break;
+            case 40: // down
+                if (character[1] != taille - 1) {
+                    if (mazeTab[character[0]][character[1] + 1] != MUR) {
+                        character[1] += 1;
+                        score++;
+                    }
+                }
+                break;
+            case 68: //letter D
+                for (let i = 0; i < taille; i++) {
+                    for (let j = 0; j < taille; j++) {
+                        if (mazeTab[i][j] == MUR) {
+                            mazeTab[i][j] = SOL;
+                        }
+                    }
+                }
+                break;
+            case 67: // letter c
+                if (wayBack) {
+                    calculWay();
+                }
+            
+                if (drdBool) {
+                    blurDistances();
+                } else {
+                    drawDistances();
+                }
+                break;
+            case 70: //letter f
+                if (!wayBack) {
+                    calculWayBack(far[0], far[1]);
+                }
+                
+                if (speedUp) {
+                    while (gameStarted) {
+                        avancer();
+
+                        if (character[0] == far[0] && character[1] == far[1]) {
+                            endGame();
+                        }
+                    }
+                } else {
+                    avancer();
+                }
+                
+                break;
+            case 65: //letter a
+                if (!speedUp) {
+                    speedUp = true;
+                } else {
+                    speedUp = false;
+                }
+                break;
+            default:
+                //nothing
+        }
+
+        ctx.fillStyle = colorWay;
+        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+    } else {
+        if (fond.contains(settings)) {
+            if (key == 107) { // +
+                if (meterTaille.value < meterTaille.max) {
+                    meterTaille.value += 2;
+                    taille += 2;
+                    hVal.textContent = "Valeur actuelle : " + taille;
+                }
+            } else if (key == 109) { // -
+                if (meterTaille.value > meterTaille.min) {
+                    meterTaille.value -= 2;
+                    taille -= 2;
+                    hVal.textContent = "Valeur actuelle : " + taille;
+                }
+            }
+        }
+    }
+
+    if (key == 32) { //space
+        if (fond.contains(btnStart)) {
+            fond.removeChild(btnStart);
+            fond.removeChild(btnSet);
+            fond.appendChild(btnEsc);
+            startGame();
+        } else {
+            fond.appendChild(btnStart);
+            fond.appendChild(btnSet);
+            fond.removeChild(btnEsc);
+            gameStarted = false;
+            
+            if (fond.contains(canvas)) {
+                fond.removeChild(canvas);
+            } else {
+                fond.removeChild(settings);
+            }
+        }
+    }
+
+    
+    //fin de partie
+    if (character[0] == far[0] && character[1] == far[1]) {
+        endGame();
+    }
+}
+
 // action lorsque l'on clique sur le boutton start, lancement d'une partie
 btnStart.onclick = function() {
     fond.removeChild(btnStart);
@@ -75,6 +214,7 @@ btnAugm.onclick = function() {
         hVal.textContent = "Valeur actuelle : " + taille;
     }
 }
+
 // action lorsque l'on clique sur le boutton diminuer, diminu de 2 la taille du labyrinthe
 btnDim.onclick = function() {
     if (meterTaille.value > meterTaille.min) {
@@ -341,184 +481,34 @@ function merge(x, y, d) {
     }
 }
 
-//fonction d'affichage du labyrinthe dans le canvas
-function drawMaze() {
+// fonction qui fait avancer le joueur de 1, fonction utilisée dans les fonction de triche de la touche F
+function avancer() {
 
-    l = 0.95 * fond.clientHeight;
-    var r = l % taille;
-    l -= r;
-    tailleCase = (l / taille);
+    ctx.fillStyle = colorHead;
+    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
 
-    canvas.height = l; 
-    canvas.width = l;
+    score++;
 
-    ctx.fillStyle = colorWalls;
-    for (let i = 0; i < taille; i++) {
-        for (let j = 0; j < taille; j++) {
-            if (mazeTab[i][j] == MUR) {
-                ctx.fillRect(i * tailleCase, j * tailleCase, tailleCase, tailleCase);
-            }
-        }
+    if (mazeTab[character[0]][character[1]] > mazeTab[character[0] + 1][character[1]] &&
+         mazeTab[character[0] + 1][character[1]] != MUR) {
+        character[0] += 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] + 1] &&
+         mazeTab[character[0]][character[1] + 1] != MUR) {
+        character[1] += 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0] - 1][character[1]] &&
+         mazeTab[character[0] - 1][character[1]] != MUR) {
+        character[0] -= 1;
+    }
+    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] - 1] &&
+         mazeTab[character[0]][character[1] - 1] != MUR) {
+        character[1] -= 1;
     }
 
     ctx.fillStyle = colorWay;
-    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+    ctx.fillRect(character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
 
-    ctx.fillStyle = colorEnd;
-    ctx.fillRect( far[0] * tailleCase, far[1] * tailleCase, tailleCase, tailleCase);
-
-    fond.appendChild(canvas);
-}
-
-//fonction utilitaire qui renvoi un entier aleatoire entre min et max exclu de e
-function getRand(min, max, e) {
-    let y;
-    do {
-        y = Math.floor(Math.random() * (max - min + 1));
-        y += min;
-    } 
-    while (y == e);
-
-    return y;
-}
-
-//gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
-document.onkeydown = function handleKeyDown(e) {
-
-    var key = e.keyCode;
-
-    if (gameStarted) {
-        
-        ctx.fillStyle = colorHead;
-        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-
-        switch(key) {
-            case 37: // left
-                if (character[0] != 0) {
-                    if (mazeTab[character[0] - 1][character[1]] != MUR) {
-                        character[0] -= 1;
-                        score++;
-                    }
-                }
-                break;
-            case 38: // up
-                if (character[1] != 0) {
-                    if (mazeTab[character[0]][character[1] - 1] != MUR) {
-                        character[1] -= 1;
-                        score++;
-                    }
-                }
-                break;
-            case 39: // right
-                if (character[0] != taille - 1) {
-                    if (mazeTab[character[0] + 1][character[1]] != MUR) {
-                        character[0] += 1;
-                        score++;
-                    }
-                }            
-                break;
-            case 40: // down
-                if (character[1] != taille - 1) {
-                    if (mazeTab[character[0]][character[1] + 1] != MUR) {
-                        character[1] += 1;
-                        score++;
-                    }
-                }
-                break;
-            case 68: //letter D
-                for (let i = 0; i < taille; i++) {
-                    for (let j = 0; j < taille; j++) {
-                        if (mazeTab[i][j] == MUR) {
-                            mazeTab[i][j] = SOL;
-                        }
-                    }
-                }
-                break;
-            case 67: // letter c
-                if (wayBack) {
-                    calculWay();
-                }
-            
-                if (drdBool) {
-                    blurDistances();
-                } else {
-                    drawDistances();
-                }
-                break;
-            case 70: //letter f
-                if (!wayBack) {
-                    calculWayBack(far[0], far[1]);
-                }
-                
-                if (speedUp) {
-                    while (gameStarted) {
-                        avancer();
-
-                        if (character[0] == far[0] && character[1] == far[1]) {
-                            endGame();
-                        }
-                    }
-                } else {
-                    avancer();
-                }
-                
-                break;
-            case 65: //letter a
-                if (!speedUp) {
-                    speedUp = true;
-                } else {
-                    speedUp = false;
-                }
-                break;
-            default:
-                //nothing
-        }
-
-        ctx.fillStyle = colorWay;
-        ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-    } else {
-        if (fond.contains(settings)) {
-            if (key == 107) { // +
-                if (meterTaille.value < meterTaille.max) {
-                    meterTaille.value += 2;
-                    taille += 2;
-                    hVal.textContent = "Valeur actuelle : " + taille;
-                }
-            } else if (key == 109) { // -
-                if (meterTaille.value > meterTaille.min) {
-                    meterTaille.value -= 2;
-                    taille -= 2;
-                    hVal.textContent = "Valeur actuelle : " + taille;
-                }
-            }
-        }
-    }
-
-    if (key == 32) { //space
-        if (fond.contains(btnStart)) {
-            fond.removeChild(btnStart);
-            fond.removeChild(btnSet);
-            fond.appendChild(btnEsc);
-            startGame();
-        } else {
-            fond.appendChild(btnStart);
-            fond.appendChild(btnSet);
-            fond.removeChild(btnEsc);
-            gameStarted = false;
-            
-            if (fond.contains(canvas)) {
-                fond.removeChild(canvas);
-            } else {
-                fond.removeChild(settings);
-            }
-        }
-    }
-
-    
-    //fin de partie
-    if (character[0] == far[0] && character[1] == far[1]) {
-        endGame();
-    }
 }
 
 // fonction qui calcul récursivament la distance au départ du labyrinthe
@@ -583,6 +573,35 @@ function voisinRecurs(x, y, val) {
     } 
 }
 
+//fonction d'affichage du labyrinthe dans le canvas
+function drawMaze() {
+
+    l = 0.95 * fond.clientHeight;
+    var r = l % taille;
+    l -= r;
+    tailleCase = (l / taille);
+
+    canvas.height = l; 
+    canvas.width = l;
+
+    ctx.fillStyle = colorWalls;
+    for (let i = 0; i < taille; i++) {
+        for (let j = 0; j < taille; j++) {
+            if (mazeTab[i][j] == MUR) {
+                ctx.fillRect(i * tailleCase, j * tailleCase, tailleCase, tailleCase);
+            }
+        }
+    }
+
+    ctx.fillStyle = colorWay;
+    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+    ctx.fillStyle = colorEnd;
+    ctx.fillRect( far[0] * tailleCase, far[1] * tailleCase, tailleCase, tailleCase);
+
+    fond.appendChild(canvas);
+}
+
 // fonction qui dessine avec un linéar gradient de gris les distances du labyrinthe, plus la case est loin du départ plus elle est clair
 function drawDistances() {
     let rgbStart = 40;
@@ -610,55 +629,6 @@ function blurDistances() {
     ctx.clearRect(0, 0, l, l);
     drawMaze();
     drdBool = false;
-}
-
-// fonction qui fait avancer le joueur de 1, fonction utilisée dans les fonction de triche de la touche F
-function avancer() {
-
-    ctx.fillStyle = colorHead;
-    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-
-    score++;
-
-    if (mazeTab[character[0]][character[1]] > mazeTab[character[0] + 1][character[1]] &&
-         mazeTab[character[0] + 1][character[1]] != MUR) {
-        character[0] += 1;
-    }
-    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] + 1] &&
-         mazeTab[character[0]][character[1] + 1] != MUR) {
-        character[1] += 1;
-    }
-    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0] - 1][character[1]] &&
-         mazeTab[character[0] - 1][character[1]] != MUR) {
-        character[0] -= 1;
-    }
-    else if (mazeTab[character[0]][character[1]] > mazeTab[character[0]][character[1] - 1] &&
-         mazeTab[character[0]][character[1] - 1] != MUR) {
-        character[1] -= 1;
-    }
-
-    ctx.fillStyle = colorWay;
-    ctx.fillRect(character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-
-}
-
-//fonction utilitaire qui prends en entrée trois entiers R, G et B correspondants a une valeur entre [0,255] et qui renvoi le code exadécimal de la couleur associée, fonction qui sers dans la fonction calculWay() pour le gradiant des couleurs
-function color(r,g,b) {
-    if (r > 255 || g > 255 || b > 255) {
-        return "#FF0000";
-    } else {
-        let string = "#";
-
-        var exa = r.toString(16);
-        string = string + exa;
-        exa = g.toString(16);
-        string = string + exa;
-        exa = b.toString(16);
-        string = string + exa;
-
-        return string;
-    }
-    
 }
 
 // fonction qui calcul le score final à la fin d'une partie du joueur, a savoir que lesocre max en cas de chemin parfait est de 1.5 * la taille du labyrinthe
@@ -694,4 +664,35 @@ function endGame() {
     }
 
     gameStarted = false;
+}
+
+//fonction utilitaire qui renvoi un entier aleatoire entre min et max exclu de e
+function getRand(min, max, e) {
+    let y;
+    do {
+        y = Math.floor(Math.random() * (max - min + 1));
+        y += min;
+    } 
+    while (y == e);
+
+    return y;
+}
+
+//fonction utilitaire qui prends en entrée trois entiers R, G et B correspondants a une valeur entre [0,255] et qui renvoi le code exadécimal de la couleur associée, fonction qui sers dans la fonction calculWay() pour le gradiant des couleurs
+function color(r,g,b) {
+    if (r > 255 || g > 255 || b > 255) {
+        return "#FF0000";
+    } else {
+        let string = "#";
+
+        var exa = r.toString(16);
+        string = string + exa;
+        exa = g.toString(16);
+        string = string + exa;
+        exa = b.toString(16);
+        string = string + exa;
+
+        return string;
+    }
+    
 }
