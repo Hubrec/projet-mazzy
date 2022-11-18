@@ -1,27 +1,57 @@
-const fond = document.querySelector('body');
+const fond = document.querySelector('body'); // récupère l'élément body du html ce qui permet de modifier tout le flux html facilement
+
+const settings = document.querySelector('div'); // récupère l'élément qui coprends l'intégralité de la page settings
+fond.removeChild(settings); //enlève les explications présentes de base dans le html
+
+// récupère dans le flux html tous les bouttons
 const btnStart = document.querySelector('button');
 const btnSet = document.getElementById('settings');
-const settings = document.querySelector('div');
-
 const btnAugm = document.getElementById('augm');
 const btnDim = document.getElementById('dim');
-const meterTaille = document.querySelector('meter');
 const btnEsc = document.getElementById('esc');
-
 const btnStyle1 = document.getElementById('style1');
 const btnStyle2 = document.getElementById('style2');
 const btnStyle3 = document.getElementById('style3');
 const btnStyle4 = document.getElementById('style4');
 
+// récupère dans le flux html tout le reste des éléments qui seront modifiés dans le code
+const meterTaille = document.querySelector('meter');
 const dataNbParties = document.getElementById('parties');
 const dataScore = document.getElementById('score');
 const dataMoyen = document.getElementById('moyenne');
 const dataPercent = document.getElementById('message');
-
 const hVal = document.getElementById('hval');
+const root = document.documentElement; // récupère les variables root du document html
 
-fond.removeChild(settings);
+const MUR = 0; // constante désignant la valeur d'une case sol
+const SOL = 1; // constante désignant la valeur d'une case mur
+const canvas = document.createElement("canvas"); // crée l'objet canvas qui permet d'écrire et dessiner dans le flux html
+const ctx = canvas.getContext('2d'); // crée le context 2d associé au canvas qui permet de dessiner librement dedan
 
+var taille = 25; // taille en longueur et largeur du tableau et donc du labyrinthe, initialisé a 25 par défaut car c'est une taille optimisée pour découvrir le jeu, a savoir toutes les valeurs de tailles sont impaire afin d'avoir un mur entourant et pour la simplicité du code
+var incr = 1; // variable utile lors de la création du labyrinthe, donne le nombre (la famille) des cases une par une
+var score = 0; // variable du nombre de déplacements dans une partie
+
+var colorEnd = "green"; // couleur de la case d'arrivée
+var colorHead = "orange"; // couleur du tracé du personnage
+var colorWalls = "black"; // couleur des murs du labyrinthe
+var colorWay = "yellow"; // couleur de la tête du personnage
+
+var far = [taille - 1, taille - 2]; // valeur de l'arrivée, initialisée dans le coin du labyrinthe puis changé a la valeur la plus loin du labyrinthe ensuite
+var character = [0, 1]; // position du joueur dans le labyrynthe avec les paramètres x et y
+var mazeTab; // tableau qui stocke les données du labyrinthe
+var bigVal = 0; // variable qui stockera dans le programme la plus grande valeur en distance au départ dans le labyrinthe
+var gameStarted = false; // boolean qui détermine si une partie est lancée
+var wayBack = false; // boolean qui détermine si les distances sont calculées depuis le départ ou depuis l'arrivée
+var globalScore = 0; // variable du score sur la session, sé réinitialise au rechargement de la page
+var nbParties = 0; // variable du nombre de parties lancées, peu imports si on les a fini, pareil qu'au dessus
+var percentPlayer = 0; // variable gameplay qui dit au joueur a quel point il est bon au jeu, attention cette variable ne représente pas le vrai classement du joueur mais simplement a quel point il est loin de la meilleur moyenne possible par partie (cette moyenne étant de 302)
+var speedUp = false; // boolean qui détermine si l'avance rapide est instantanée, s'active au boutton A
+var tailleCase = 0; // taille en picel d'une case calculée en fonction de la taille de la frame et du nombre de cases
+var l; // variable de la taille du labyrinthe qui vaux la la taille de la frame arrondi pour que le nombre de cases tombe à l'entier pile
+var drdBool = false; // boolean qui détermine si l'aide a la distance est activée, activable avec la touche C
+
+// action lorsque l'on clique sur le boutton start, lancement d'une partie
 btnStart.onclick = function() {
     fond.removeChild(btnStart);
     fond.removeChild(btnSet);
@@ -29,6 +59,7 @@ btnStart.onclick = function() {
     startGame();
 }
 
+// action lorsque l'on clique sur le boutton réglages, montre le panneau de paramètres et l'explication du jeu
 btnSet.onclick = function() {
     fond.removeChild(btnStart);
     fond.removeChild(btnSet);
@@ -36,7 +67,7 @@ btnSet.onclick = function() {
     fond.appendChild(btnEsc);
 }
 
-//click normal
+// action lorsque l'on clique sur le boutton augmenter, augmente de 2 la taille du labyrinthe
 btnAugm.onclick = function() {
     if (meterTaille.value < meterTaille.max) {
         meterTaille.value += 2;
@@ -44,7 +75,7 @@ btnAugm.onclick = function() {
         hVal.textContent = "Valeur actuelle : " + taille;
     }
 }
-
+// action lorsque l'on clique sur le boutton diminuer, diminu de 2 la taille du labyrinthe
 btnDim.onclick = function() {
     if (meterTaille.value > meterTaille.min) {
         meterTaille.value -= 2;
@@ -53,6 +84,7 @@ btnDim.onclick = function() {
     }
 }
 
+// action lorsque l'on clique sur le boutton esc, retourne au menu principal
 btnEsc.onclick = function() {
     fond.appendChild(btnStart);
     fond.appendChild(btnSet);
@@ -65,31 +97,7 @@ btnEsc.onclick = function() {
     }
 }
 
-const MUR = 0;
-const SOL = 1;
-var taille = 25;
-var incr = 1;
-var score = 0;
-
-var colorEnd = "green";
-var colorHead = "orange";
-var colorWalls = "black";
-var colorWay = "yellow";
-
-var far = [taille - 1, taille - 2];
-var character = [0, 1];
-var mazeTab;
-var bigVal = 0;
-var gameStarted = false;
-var wayBack = false;
-var globalScore = 0;
-var nbParties = 0;
-var speedUp = 0;
-
-var percentPlayer = 0;
-
-var root = document.documentElement;
-
+// action lorsque l'on clique sur le boutton style de base, passe le style du jeu à celui par défaut
 btnStyle1.onclick = function() {
     colorEnd = "green";
     colorHead = "orange";
@@ -102,6 +110,7 @@ btnStyle1.onclick = function() {
     root.style.setProperty('--thrdCol', "#947d21");
 }
 
+// action lorsque l'on clique sur le boutton style black & white, passe le style du jeu à celui en noir et blanc (et rouge !)
 btnStyle2.onclick = function() {
     colorEnd = "#FA0000";
     colorHead = "#5D5D5D";
@@ -114,6 +123,7 @@ btnStyle2.onclick = function() {
     root.style.setProperty('--thrdCol', "darkgray");
 }
 
+// action lorsque l'on clique sur le boutton style bleu marine, passe le style du jeu à celui bleu azur
 btnStyle3.onclick = function() {
     colorEnd = "#00FFFF";
     colorHead = "#30CB8F";
@@ -126,6 +136,7 @@ btnStyle3.onclick = function() {
     root.style.setProperty('--textCol', "black");
 }
 
+// action lorsque l'on clique sur le boutton style néon, passe le style du jeu a celui le plus douteux, stade de cette fonctionnalité : expérimental
 btnStyle4.onclick = function() {
     colorEnd = "#1D049D";
     colorHead = "#BB0594";
@@ -138,13 +149,14 @@ btnStyle4.onclick = function() {
     root.style.setProperty('--textCol', "red");
 }
 
+// fonction appelée au lancement d'une nouvelle partie, réinitialise toutes les variables nénéssaires et lance le calcul du labyrinthe, du chemin et dessine ensuite le labyrinthe
 function startGame() {
     gameStarted = true;
     character = [0 ,1];
     drdBool = false;
     score = 0;
     nbParties += 1;
-    speedUp = 0;
+    speedUp = false;
     dataNbParties.textContent = "Nombre de parties : " + nbParties;
     dataMoyen.textContent = "Score moyen par partie : " + Math.round(globalScore / nbParties);
 
@@ -160,7 +172,7 @@ function startGame() {
     drawMaze();
 }
 
-//fonction qui va générer un labyninthe unique et nouveau a chaque fois
+//fonction qui va générer un labyninthe unique et nouveau a chaque fois de la taille de la variable taille
 function generateMaze() {
 
     mazeTab = new Array(taille);
@@ -260,6 +272,7 @@ function generateMaze() {
     resetSol();
 }
 
+// fonction utilitaire qui va servir a remmetre a 0 les cases sol, c'est à dire les cases qui ne sont pas un mur
 function resetSol() {
     for (let o = 0; o < taille; o++) {
         for (let k = 0; k < taille; k++) {
@@ -270,6 +283,7 @@ function resetSol() {
     }
 }
 
+// fonction qui teste si le labyrinthe a validé son unicité, c'est a dire que toutes les cases sont de la même famille et ne forment donc qu'un seul et unique chemin, renvoi true si c'est bien le cas
 function merged() {
     for (let i = 0; i < taille ; i++) {
         for (let j = 0; j < taille ; j++) {
@@ -281,6 +295,7 @@ function merged() {
     return true;
 }
 
+// fonction qui va rassambler la case de coordonnées x et y et dans la direction d (valeurs de d = {1,2,3,4} pour haut droite bas gauche)
 function merge(x, y, d) {
     
     let nv = mazeTab[x][y];
@@ -326,14 +341,7 @@ function merge(x, y, d) {
     }
 }
 
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext('2d');
-var tailleCase = 0;
-var l;
-
-var drdBool = false;
-
-//fonction d'affichage
+//fonction d'affichage du labyrinthe dans le canvas
 function drawMaze() {
 
     l = 0.95 * fond.clientHeight;
@@ -362,7 +370,7 @@ function drawMaze() {
     fond.appendChild(canvas);
 }
 
-//fonction qui renvoi un entier aleatoire entre min et max exclu de e
+//fonction utilitaire qui renvoi un entier aleatoire entre min et max exclu de e
 function getRand(min, max, e) {
     let y;
     do {
@@ -374,7 +382,7 @@ function getRand(min, max, e) {
     return y;
 }
 
-//gestionnaire des touches enfoncées
+//gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
 document.onkeydown = function handleKeyDown(e) {
 
     var key = e.keyCode;
@@ -442,7 +450,7 @@ document.onkeydown = function handleKeyDown(e) {
                     calculWayBack(far[0], far[1]);
                 }
                 
-                if (speedUp == 1) {
+                if (speedUp) {
                     while (gameStarted) {
                         avancer();
 
@@ -456,10 +464,10 @@ document.onkeydown = function handleKeyDown(e) {
                 
                 break;
             case 65: //letter a
-                if (speedUp == 0) {
-                    speedUp ++;
+                if (!speedUp) {
+                    speedUp = true;
                 } else {
-                    speedUp --;
+                    speedUp = false;
                 }
                 break;
             default:
@@ -513,6 +521,7 @@ document.onkeydown = function handleKeyDown(e) {
     }
 }
 
+// fonction qui calcul récursivament la distance au départ du labyrinthe
 function calculWay() {
     var x = 1;
     var y = 1;
@@ -536,6 +545,7 @@ function calculWay() {
     wayBack = false;
 }
 
+// fonction qui calcul récursivement les distances a l'arrivée du labyrinthe pour toutes les cases sol, permet ensuite de trouver le plus court chemin qui mène à l'arrivée depuis nimporte quel point du labyrinthe
 function calculWayBack(x, y) {
     var val = 2;
     resetSol();
@@ -548,6 +558,7 @@ function calculWayBack(x, y) {
     wayBack = true;
 }
 
+// fonction racine de la récursivité utilisée dans les fonctions calculWay() et calculWayBack(), c'est cette fonction qui va s'executer récursivement, son point d'arrêt est quand tout le tableau est parcouru
 function voisinRecurs(x, y, val) {
 
     mazeTab[x][y] = val;
@@ -572,6 +583,7 @@ function voisinRecurs(x, y, val) {
     } 
 }
 
+// fonction qui dessine avec un linéar gradient de gris les distances du labyrinthe, plus la case est loin du départ plus elle est clair
 function drawDistances() {
     let rgbStart = 40;
     let facteur = 1;
@@ -592,6 +604,15 @@ function drawDistances() {
     drdBool = true;
 }
 
+// fonction qui cache les distances dessinées dans la fonction drawDistances()
+function blurDistances() {
+    
+    ctx.clearRect(0, 0, l, l);
+    drawMaze();
+    drdBool = false;
+}
+
+// fonction qui fait avancer le joueur de 1, fonction utilisée dans les fonction de triche de la touche F
 function avancer() {
 
     ctx.fillStyle = colorHead;
@@ -621,13 +642,7 @@ function avancer() {
 
 }
 
-function blurDistances() {
-    
-    ctx.clearRect(0, 0, l, l);
-    drawMaze();
-    drdBool = false;
-}
-
+//fonction utilitaire qui prends en entrée trois entiers R, G et B correspondants a une valeur entre [0,255] et qui renvoi le code exadécimal de la couleur associée, fonction qui sers dans la fonction calculWay() pour le gradiant des couleurs
 function color(r,g,b) {
     if (r > 255 || g > 255 || b > 255) {
         return "#FF0000";
@@ -646,10 +661,12 @@ function color(r,g,b) {
     
 }
 
+// fonction qui calcul le score final à la fin d'une partie du joueur, a savoir que lesocre max en cas de chemin parfait est de 1.5 * la taille du labyrinthe
 function calcScore() {
     return Math.round(taille*1.5) + bigVal - score - 3;
 }
 
+// fonction qui s'execute a la fin d'une partie, c'est a dire quand le jeueur atteint la case d'arrivée
 function endGame() {
     ctx.font = "bold 50px sans-serif";
     ctx.fillStyle = "black";
