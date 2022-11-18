@@ -1,7 +1,6 @@
 const fond = document.querySelector('body'); // récupère l'élément body du html ce qui permet de modifier tout le flux html facilement
 
 const settings = document.querySelector('div'); // récupère l'élément qui coprends l'intégralité de la page settings
-fond.removeChild(settings); //enlève les explications présentes de base dans le html
 
 // récupère dans le flux html tous les bouttons
 const btnStart = document.querySelector('button');
@@ -50,6 +49,8 @@ var speedUp = false; // boolean qui détermine si l'avance rapide est instantan�
 var tailleCase = 0; // taille en picel d'une case calculée en fonction de la taille de la frame et du nombre de cases
 var l; // variable de la taille du labyrinthe qui vaux la la taille de la frame arrondi pour que le nombre de cases tombe à l'entier pile
 var drdBool = false; // boolean qui détermine si l'aide a la distance est activée, activable avec la touche C
+
+fond.removeChild(settings); //enlève les explications présentes de base dans le html
 
 //gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
 document.onkeydown = function handleKeyDown(e) {
