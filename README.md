@@ -44,7 +44,7 @@ This web application project aims to be played above all because it is an entert
 
 ## License
 
-This project is open source.
+This project is under a MIT liscence described in the [LICENCE.txt](./LICENCE.txt) on the project. 
 
 ## Project status
 
