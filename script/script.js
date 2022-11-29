@@ -52,6 +52,9 @@ var drdBool = false; // boolean qui détermine si l'aide a la distance est activ
 
 fond.removeChild(settings); //enlève les explications présentes de base dans le html
 
+const loading = document.createElement("h1"); // crée un element a afficher lors du chargement du labyrinthe
+loading.textContent = "Chargement . . .";
+
 //gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
 document.onkeydown = function handleKeyDown(e) {
 
@@ -169,7 +172,8 @@ document.onkeydown = function handleKeyDown(e) {
             fond.removeChild(btnStart);
             fond.removeChild(btnSet);
             fond.appendChild(btnEsc);
-            startGame();
+            fond.appendChild(loading);
+            requestAnimationFrame(() => requestAnimationFrame(startGame));
         } else {
             fond.appendChild(btnStart);
             fond.appendChild(btnSet);
@@ -196,7 +200,8 @@ btnStart.onclick = function() {
     fond.removeChild(btnStart);
     fond.removeChild(btnSet);
     fond.appendChild(btnEsc);
-    startGame();
+    fond.appendChild(loading);
+    requestAnimationFrame(() => requestAnimationFrame(startGame));
 };
 
 // action lorsque l'on clique sur le boutton réglages, montre le panneau de paramètres et l'explication du jeu
@@ -311,6 +316,7 @@ function startGame() {
     generateMaze();
     calculWay();
     drawMaze();
+    fond.removeChild(loading);
 }
 
 //fonction qui va générer un labyninthe unique et nouveau a chaque fois de la taille de la variable taille
@@ -575,7 +581,7 @@ function voisinRecurs(x, y, val) {
 }
 
 //fonction d'affichage du labyrinthe dans le canvas
-function drawMaze() {
+async function drawMaze() {
 
     l = 0.95 * fond.clientHeight;
     var r = l % taille;
