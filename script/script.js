@@ -54,6 +54,7 @@ fond.removeChild(settings); //enlève les explications présentes de base dans l
 
 const loading = document.createElement("h1"); // crée un element a afficher lors du chargement du labyrinthe
 loading.textContent = "Chargement . . .";
+hVal.textContent = "Valeur actuelle : " + (taille - 1);
 
 //gestionnaire des touches enfoncées du clavier, elle va lance la plupart des ineractions entre le joueur et le jeu dans le programme
 document.onkeydown = function handleKeyDown(e) {
@@ -155,13 +156,13 @@ document.onkeydown = function handleKeyDown(e) {
                 if (meterTaille.value < meterTaille.max) {
                     meterTaille.value += 2;
                     taille += 2;
-                    hVal.textContent = "Valeur actuelle : " + taille;
+                    hVal.textContent = "Valeur actuelle : " + (taille - 1);
                 }
             } else if (key == 109) { // -
                 if (meterTaille.value > meterTaille.min) {
                     meterTaille.value -= 2;
                     taille -= 2;
-                    hVal.textContent = "Valeur actuelle : " + taille;
+                    hVal.textContent = "Valeur actuelle : " + (taille - 1);
                 }
             }
         }
@@ -217,7 +218,7 @@ btnAugm.onclick = function() {
     if (meterTaille.value < meterTaille.max) {
         meterTaille.value += 2;
         taille += 2;
-        hVal.textContent = "Valeur actuelle : " + taille;
+        hVal.textContent = "Valeur actuelle : " + (taille - 1);
     }
 };  
 
@@ -226,7 +227,7 @@ btnDim.onclick = function() {
     if (meterTaille.value > meterTaille.min) {
         meterTaille.value -= 2;
         taille -= 2;
-        hVal.textContent = "Valeur actuelle : " + taille;
+        hVal.textContent = "Valeur actuelle : " + (taille - 1);
     }
 };
 
@@ -312,11 +313,15 @@ function startGame() {
     if (percentPlayer == 0) {
         dataPercent.textContent = "Vous êtes le meilleur joueur au monde !";
     }
-
+    var start = new Date();
     generateMaze();
+    var time = new Date() - start;
+    console.log("temps d'execution de la gégération du labyrinthe");
+    console.log(time);
     calculWay();
-    drawMaze();
     fond.removeChild(loading);
+
+    affichageDynamique();
 }
 
 //fonction qui va générer un labyninthe unique et nouveau a chaque fois de la taille de la variable taille
@@ -580,35 +585,6 @@ function voisinRecurs(x, y, val) {
     } 
 }
 
-//fonction d'affichage du labyrinthe dans le canvas
-async function drawMaze() {
-
-    l = 0.95 * fond.clientHeight;
-    var r = l % taille;
-    l -= r;
-    tailleCase = (l / taille);
-
-    canvas.height = l; 
-    canvas.width = l;
-
-    ctx.fillStyle = colorWalls;
-    for (let i = 0; i < taille; i++) {
-        for (let j = 0; j < taille; j++) {
-            if (mazeTab[i][j] == MUR) {
-                ctx.fillRect(i * tailleCase, j * tailleCase, tailleCase, tailleCase);
-            }
-        }
-    }
-
-    ctx.fillStyle = colorWay;
-    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
-
-    ctx.fillStyle = colorEnd;
-    ctx.fillRect( far[0] * tailleCase, far[1] * tailleCase, tailleCase, tailleCase);
-
-    fond.appendChild(canvas);
-}
-
 // fonction qui dessine avec un linéar gradient de gris les distances du labyrinthe, plus la case est loin du départ plus elle est clair
 function drawDistances() {
     let rgbStart = 40;
@@ -702,4 +678,106 @@ function color(r,g,b) {
         return string;
     }
     
+}
+
+//fonction qui affiche le labyrinthe
+function affichageDynamique() {
+    
+    fond.appendChild(canvas);
+
+    l = 0.95 * fond.clientHeight;
+    var r = l % taille;
+    l -= r;
+    tailleCase = (l / taille);
+
+    canvas.height = l; 
+    canvas.width = l;
+
+    ctx.fillStyle = colorWalls;
+    drawMazeRand();
+
+
+    ctx.fillStyle = colorWay;
+    ctx.fillRect( character[0] * tailleCase, character[1] * tailleCase, tailleCase, tailleCase);
+
+    ctx.fillStyle = colorEnd;
+    ctx.fillRect( far[0] * tailleCase, far[1] * tailleCase, tailleCase, tailleCase);
+
+    //fonction qui dessine le labyrinthe en balayage, non utilisé pour le moment
+    function drawMazeBalayage() {
+
+        let stillToDraw = new Array();
+    
+        let speed = 1;
+    
+        for (let i = 0; i < taille; i++) {
+            for (let j = 0; j < taille; j++) {
+                if (mazeTab[i][j] == MUR) {
+                    stillToDraw.push([i,j]);
+                }
+            }
+        }
+        
+        for (let i = 0; i < taille / 3; i++) {
+            intervalId = setInterval(whileRand, speed);
+        }
+    
+        //fonction qui sers a afficher le labyrinthe en timeout
+        function whileRand() {
+            if (stillToDraw.length == 0) {
+                clearInterval(intervalId);
+            } else {
+                ctx.fillStyle = colorWalls;
+                ctx.fillRect(stillToDraw[0][0] * tailleCase, stillToDraw[0][1] * tailleCase, tailleCase, tailleCase);
+                stillToDraw.splice(0, 1);
+            }
+        }
+    }
+    
+    //fonction qui dessine la labyrinthe mur par mur aléatoirement
+    function drawMazeRand() {
+    
+        let intervalId = null;
+        let stillToDraw = new Array();
+    
+        let speed = 1; 
+    
+        for (let i = 0; i < taille; i++) {
+            for (let j = 0; j < taille; j++) {
+                if (mazeTab[i][j] == MUR) {
+                    stillToDraw.push([i,j]);
+                }
+            }
+        }
+        
+        for (let i = 0; i < taille / 3; i++) {
+            intervalId = setInterval(whileRand, speed);
+        }
+        
+        //fonction qui sers a afficher le labyrinthe en timeout
+        function whileRand() {
+            if (stillToDraw.length == 0) {
+                clearInterval(intervalId);
+            } else {
+                let alea = getRand(0, stillToDraw.length - 1, -1);
+                ctx.fillStyle = colorWalls;
+                ctx.fillRect(stillToDraw[alea][0] * tailleCase, stillToDraw[alea][1] * tailleCase, tailleCase, tailleCase);
+                stillToDraw.splice(alea, 1);
+            }
+        }
+    }
+}
+
+//fonction d'affichage du labyrinthe dans le canvas
+function drawMaze() {
+    
+    ctx.fillStyle = colorWalls;
+    for (let i = 0; i < taille; i++) {
+        for (let j = 0; j < taille; j++) {
+            if (mazeTab[i][j] == MUR) {
+                ctx.fillRect(i * tailleCase, j * tailleCase, tailleCase, tailleCase);
+            }
+        }
+    }
+    end = true;
 }
